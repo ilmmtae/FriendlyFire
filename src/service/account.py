@@ -1,14 +1,20 @@
-from fastapi import HTTPException
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from src.schema.account import AgeResponse
+from src.db.operations.account import AccountManager
+from src.schema.account import  CreateAccountRequest, AccountResponse
 
 
 class AccountService:
-    @classmethod
-    def calculate_age(cls, year: int) -> AgeResponse:
-        if year < 0:
-            # raise is used to throw an exception
-            raise HTTPException(status_code=400, detail="Year cannot be negative")
 
-        age =  2026 - year
-        return AgeResponse(age=age)
+    def __init__(self, db: AsyncSession):
+        self.db = db
+        self.manager = AccountManager(db)
+
+    async def create_account(self, request: CreateAccountRequest) -> AccountResponse:
+        account = await self.manager.create_account(request=request)
+        return AccountResponse(**account.__dict__)
+
+    async def list_accounts(self) -> list[AccountResponse]:
+        accounts = await self.manager.list_accounts()
+        return [AccountResponse(**account.__dict__) for account in accounts]
+

@@ -1,17 +1,21 @@
-from fastapi import APIRouter, Path
+from typing import List
 
-from src.schema.account import AgeResponse
+from fastapi import APIRouter, Path
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from fastapi import Depends
+
+from src.dependencies.database import RWSessionStub
+from src.schema.account import AgeResponse, CreateAccountRequest, AccountResponse
 from src.service.account import AccountService
 
 account_router = APIRouter(
     prefix="/account", tags=["account"]
 )
 
-@account_router.get("/get_age/{year}")
-def get_age(year: int = Path(..., description="The year of birth", le=2026)) -> AgeResponse:
-    return AccountService.calculate_age(year)
+@account_router.post("")
+async def create_account(request: CreateAccountRequest, db: AsyncSession = Depends(RWSessionStub)) -> AccountResponse:
+    return await AccountService(db=db).create_account(request)
 
-# Write a post endpoint that takes a name and returns a greeting message (Enample "/account/greet/{name}" - "Hello, {name}!")
-# 1. Pass name to the path
-# 2. Pass name to the request body
-# P.S - Both endpoints should be documented
+@account_router.get("")
+async def list_accounts(db: AsyncSession = Depends(RWSessionStub)) -> List[AccountResponse]:
+    return await AccountService(db=db).list_accounts()
