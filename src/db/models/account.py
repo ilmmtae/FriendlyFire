@@ -4,7 +4,8 @@ from uuid import uuid4
 from sqlalchemy import Column, UUID, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
-from src.db.base import Base
+from db.base import Base
+from db.types.account import AccountType
 
 
 class Account(Base):
@@ -19,6 +20,7 @@ class Account(Base):
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
+    type = Column(String, default=AccountType.STUDENT)
 
     contact_data = relationship(
         "ContactData",

@@ -22,3 +22,5 @@ class AccountResponse(BaseModel):
         is_deleted: bool = Field(..., description="Indicates if the account is deleted")
         created_at: datetime = Field(..., description="The creation timestamp of the account")
         updated_at: datetime = Field(..., description="The last update timestamp of the account")
+        type: str = Field(..., description="Type of the account")
+
