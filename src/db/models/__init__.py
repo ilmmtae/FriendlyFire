@@ -1,1 +1,1 @@
-from . import account
+import account, courses
