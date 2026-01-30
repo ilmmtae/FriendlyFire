@@ -22,8 +22,11 @@ class AccountManager:
         return account
 
     async def list_accounts(self):
-        result = await self.db.execute(
-            select(Account)
-        )
+        result = await self.db.execute(select(Account))
         results = result.scalars().all()
         return results
+
+    async def email_taken(self, email: str) -> bool:
+        result = await self.db.execute(select(Account).where(Account.email == email))
+        account = result.scalars().one_or_none()
+        return account is not None

@@ -6,7 +6,7 @@ from sqlalchemy import Column, UUID, String, DateTime, Boolean, Integer, Foreign
 from sqlalchemy.orm import relationship
 
 
-class Courses(Base):
+class Course(Base):
 
     __tablename__ = "courses"
 
@@ -16,13 +16,14 @@ class Courses(Base):
     is_published = Column(Boolean, default=False)
     created_at = Column(DateTime)
 
-tasks = relationship(
-    "Tasks",
-        back_populates="courses",
+    tasks = relationship(
+        "Task",
+        back_populates="course",
         cascade="all, delete-orphan",
-)
+    )
 
-class Tasks(Base):
+
+class Task(Base):
 
     __tablename__ = "tasks"
 
@@ -33,7 +34,4 @@ class Tasks(Base):
     max_score = Column(Integer, default=100)
     due_date = Column(DateTime)
 
-    courses = relationship(
-        "Course",
-        back_populates="tasks"
-    )
+    course = relationship("Course", back_populates="tasks")
