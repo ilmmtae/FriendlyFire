@@ -5,17 +5,13 @@ from pydantic import BaseModel, Field
 
 from src.db.types.account import AccountType
 
-
-class AgeResponse(BaseModel):
-    age: int = Field(..., description="The calculated age")
-
-
-class CreateAccountRequest(BaseModel):
-    first_name: str = Field(..., description="The first name of the account holder")
-    last_name: str = Field(..., description="The last name of the account holder")
-    email: str = Field(..., description="The email of the account holder")
+class ShortAccountSchema(BaseModel):
+    first_name: str | None = Field(None, description="The first name of the account holder")
+    last_name: str | None = Field(None, description="The last name of the account holder")
     image: str | None = Field(None, description="The image URL of the account holder")
 
+class CreateAccountRequest(ShortAccountSchema):
+    email: str = Field(..., description="The email of the account holder")
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -27,13 +23,9 @@ class CreateAccountRequest(BaseModel):
         }
     }
 
-
-class AccountResponse(BaseModel):
+class AccountResponse(ShortAccountSchema):
     id: UUID = Field(..., description="The unique identifier of the account")
-    first_name: str = Field(..., description="The first name of the account holder")
-    last_name: str = Field(..., description="The last name of the account holder")
     email: str = Field(..., description="The email of the account holder")
-    image: str | None = Field(None, description="The image URL of the account holder")
     is_deleted: bool = Field(..., description="Indicates if the account is deleted")
     created_at: datetime = Field(
         ..., description="The creation timestamp of the account"
@@ -41,7 +33,7 @@ class AccountResponse(BaseModel):
     updated_at: datetime = Field(
         ..., description="The last update timestamp of the account"
     )
-    type: str = Field(..., description="Type of the account")
+    type: str | None = Field(None, description="Type of the account")
 
     model_config = {
         "json_schema_extra": {
