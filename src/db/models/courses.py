@@ -1,4 +1,4 @@
-from db.base import Base
+from src.db.base import Base
 
 from uuid import uuid4
 

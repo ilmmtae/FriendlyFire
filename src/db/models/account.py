@@ -4,8 +4,8 @@ from uuid import uuid4
 from sqlalchemy import Column, UUID, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
-from db.base import Base
-from db.types.account import AccountType
+from src.db.base import Base
+from src.db.types.account import AccountType
 
 
 class Account(Base):
