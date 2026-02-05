@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from src.db.base import Base
 
 from uuid import uuid4
 
-from sqlalchemy import Column, UUID, String, DateTime, Boolean, Integer, ForeignKey
+from sqlalchemy import Column, UUID, String, DateTime, Boolean, func
 from sqlalchemy.orm import relationship
 
 
@@ -14,7 +16,7 @@ class Course(Base):
     title = Column(String, nullable=False)
     description = Column(String)
     is_published = Column(Boolean, default=False)
-    created_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.now(), server_default=func.now())
 
     tasks = relationship(
         "Task",
@@ -23,15 +25,3 @@ class Course(Base):
     )
 
 
-class Task(Base):
-
-    __tablename__ = "tasks"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    course_id = Column(UUID(as_uuid=True), ForeignKey("courses.id"))
-    task_title = Column(String, nullable=False)
-    instructions = Column(String)
-    max_score = Column(Integer, default=100)
-    due_date = Column(DateTime)
-
-    course = relationship("Course", back_populates="tasks")
