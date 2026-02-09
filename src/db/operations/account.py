@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql.expression import select, delete, update
 
 from src.db.models.account import Account
-from src.schema.account import CreateAccountRequest, ShortAccountSchema
+from src.schema.account import CreateAccountRequest, ShortAccountSchema, LoginRequest
 
 
 class AccountManager:
@@ -18,6 +18,7 @@ class AccountManager:
             last_name=request.last_name,
             email=request.email,
             image=request.image,
+            password=request.password
         )
         self.db.add(account)
         await self.db.commit()
@@ -48,4 +49,6 @@ class AccountManager:
         result = await self.db.execute(select(Account).where(Account.id == account_id))
         return result.scalars().one()
 
-
+    async def get_by_email(self, email: str) -> Account | None:
+        result = await self.db.execute(select(Account).where(Account.email == email))
+        return result.scalars().one_or_none()

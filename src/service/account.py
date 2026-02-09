@@ -1,12 +1,14 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy import select
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.db.models.account import Account
 from src.db.operations.account import AccountManager
-from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema
+from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema, LoginRequest
 
 
 class AccountService:
@@ -48,3 +50,19 @@ class AccountService:
         account = await self.account_manager.update_by_id(account_id=account_id, request=request)
         return AccountResponse(**account.__dict__)
 
+    async def authenticate(self, request: LoginRequest) -> UUID:
+        account = await self.account_manager.get_by_email(email=request.email)
+
+        if not account:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Account not found"
+            )
+
+        if account.password != request.password:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid password"
+            )
+
+        return account.id
