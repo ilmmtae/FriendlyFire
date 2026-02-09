@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from fastapi import Depends, status, APIRouter, Path
 
 from src.dependencies.database import RWSessionStub
-from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema
+from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema, LoginRequest
 from src.service.account import AccountService
 
 account_router = APIRouter(prefix="/account", tags=["account"])
@@ -51,3 +51,10 @@ async def update_account_by_id(
     db: AsyncSession = Depends(RWSessionStub),
 )-> AccountResponse:
     return await AccountService(db=db).update_account_by_id(account_id=account_id, request=request)
+
+@account_router.post("/login")
+async def login(
+    request: LoginRequest,
+    db: AsyncSession = Depends(RWSessionStub)
+):
+    return await AccountService(db).authenticate(request)

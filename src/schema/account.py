@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from src.db.types.account import AccountType
 
@@ -9,9 +9,24 @@ class ShortAccountSchema(BaseModel):
     first_name: str | None = Field(None, description="The first name of the account holder")
     last_name: str | None = Field(None, description="The last name of the account holder")
     image: str | None = Field(None, description="The image URL of the account holder")
+    email: str = Field(..., description="The email of the account holder")
 
 class CreateAccountRequest(ShortAccountSchema):
-    email: str = Field(..., description="The email of the account holder")
+    password: str = Field(..., description="The password of the account holder")
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if not any(char.isupper() for char in v):
+            raise ValueError("Password must contain at least one uppercase letter")
+
+        special_chars = "@#$%^&+="
+        if not any(char in special_chars for char in v):
+            raise ValueError("Password must contain at least one special character")
+        return v
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -19,13 +34,13 @@ class CreateAccountRequest(ShortAccountSchema):
                 "last_name": "Doe",
                 "email": "test@gmail.com",
                 "image": "http://example.com/image.jpg",
+                "password": "Pass+word"
             }
         }
     }
 
 class AccountResponse(ShortAccountSchema):
     id: UUID = Field(..., description="The unique identifier of the account")
-    email: str = Field(..., description="The email of the account holder")
     is_deleted: bool = Field(..., description="Indicates if the account is deleted")
     created_at: datetime = Field(
         ..., description="The creation timestamp of the account"
@@ -47,6 +62,18 @@ class AccountResponse(ShortAccountSchema):
                 "created_at": "2023-10-01T12:00:00",
                 "updated_at": "2023-10-01T12:00:00",
                 "type": AccountType.STUDENT,
+            }
+        }
+    }
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "test@gmail.com",
+                "password": "Pass+word",
             }
         }
     }
