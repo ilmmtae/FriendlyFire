@@ -6,9 +6,11 @@ from sqlalchemy import select
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from src.core.security import password_hash, create_access_token
 from src.db.models.account import Account
 from src.db.operations.account import AccountManager
-from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema, LoginRequest
+from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema
+from src.schema.authentication import LoginRequest, TokenResponse
 
 
 class AccountService:
@@ -20,6 +22,8 @@ class AccountService:
     async def create_account(self, request: CreateAccountRequest) -> AccountResponse:
         if await self.account_manager.email_taken(email=request.email):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already taken")
+
+        request.password = password_hash.hash(request.password)
 
         account = await self.account_manager.create_account(request=request)
         return AccountResponse(**account.__dict__)
@@ -50,19 +54,20 @@ class AccountService:
         account = await self.account_manager.update_by_id(account_id=account_id, request=request)
         return AccountResponse(**account.__dict__)
 
-    async def authenticate(self, request: LoginRequest) -> UUID:
+    async def authenticate(self, request: LoginRequest) -> TokenResponse:
         account = await self.account_manager.get_by_email(email=request.email)
 
         if not account:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Account not found"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid password"
             )
-
-        if account.password != request.password:
+        if not password_hash.verify(request.password, account.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid password"
             )
 
-        return account.id
+        access_token = create_access_token(data={"sub": str(account.id)})
+        token_type = "bearer"
+        return TokenResponse(access_token=access_token, token_type=token_type)

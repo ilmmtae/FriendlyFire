@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str | None
     POSTGRES_HOST: str | None
     POSTGRES_PORT: str | None
+    JWT_SECRET: str | None
 
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     @classmethod

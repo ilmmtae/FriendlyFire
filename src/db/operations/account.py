@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql.expression import select, delete, update
 
 from src.db.models.account import Account
-from src.schema.account import CreateAccountRequest, ShortAccountSchema, LoginRequest
+from src.schema.account import CreateAccountRequest, ShortAccountSchema
+from src.schema.authentication import LoginRequest
 
 
 class AccountManager:

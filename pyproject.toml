@@ -11,5 +11,6 @@ dependencies = [
     "greenlet>=3.3.0",
     "httpx>=0.28.1",
     "psycopg[binary]>=3.3.2",
+    "pwdlib>=0.3.0",
     "sqlalchemy>=2.0.45",
 ]

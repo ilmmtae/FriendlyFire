@@ -2,15 +2,15 @@ from typing import List
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from fastapi import Depends, status, APIRouter, Path, Header
+from fastapi import Depends, status, APIRouter, Path
 
 from src.dependencies.database import RWSessionStub
 from src.schema.account import (
     CreateAccountRequest,
     AccountResponse,
     ShortAccountSchema,
-    LoginRequest,
 )
+from src.schema.authentication import LoginRequest
 from src.service.account import AccountService
 
 account_router = APIRouter(prefix="/account", tags=["account"])
@@ -68,10 +68,3 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(RWSessionStub)
     return await AccountService(db).authenticate(request)
 
 
-@account_router.get("/me")
-async def get_my_account(
-    authorization: UUID = Header(..., title="Account id (and JWT later)"),
-    db: AsyncSession = Depends(RWSessionStub),
-) -> AccountResponse:
-    account_id = authorization
-    return await AccountService(db).get_account_by_id(account_id=account_id)

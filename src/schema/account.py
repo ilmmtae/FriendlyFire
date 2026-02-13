@@ -66,14 +66,4 @@ class AccountResponse(ShortAccountSchema):
         }
     }
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "email": "test@gmail.com",
-                "password": "Pass+word",
-            }
-        }
-    }
+
