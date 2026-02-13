@@ -7,9 +7,9 @@ from src.service.account import AccountService
 
 authentication_router = APIRouter(prefix="/authentication", tags=["authentication"])
 
+
 @authentication_router.post("/login", response_model=TokenResponse)
 async def login(
     request: LoginRequest, db: AsyncSession = Depends(RWSessionStub)
 ) -> TokenResponse:
-    service = AccountService(db=db)
-    return await service.authenticate(request=request)
+    return await AccountService(db=db).authenticate(request=request)

@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta, timezone
-from typing import Union, Annotated
-
+from typing import Union, Annotated, Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status
-from jwt import InvalidTokenError
 from pwdlib import PasswordHash
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -17,18 +15,16 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 password_hash = PasswordHash.recommended()
 security_scheme = HTTPBearer()
 
-def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+
+def create_access_token(account_id: str, expires_minutes: int | None = 15):
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+    to_encode = {"sub": account_id, "exp": expire.timestamp()}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_account_id(
-    auth: Annotated[HTTPAuthorizationCredentials, Depends(security_scheme)]
+
+async def get_token(
+    auth: Annotated[HTTPAuthorizationCredentials, Depends(security_scheme)],
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,6 +37,6 @@ async def get_current_account_id(
         account_id = payload.get("sub")
         if account_id is None:
             raise credentials_exception
-    except InvalidTokenError:
+    except jwt.InvalidTokenError:
         raise credentials_exception
     return account_id

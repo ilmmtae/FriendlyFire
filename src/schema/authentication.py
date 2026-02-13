@@ -25,8 +25,3 @@ class TokenResponse(BaseModel):
 
 class TokenData(BaseModel):
     account_id: str | UUID = None
-
-
-class AccountInDB(AccountResponse):
-    hashed_password: str
-

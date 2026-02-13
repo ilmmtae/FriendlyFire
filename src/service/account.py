@@ -21,7 +21,9 @@ class AccountService:
 
     async def create_account(self, request: CreateAccountRequest) -> AccountResponse:
         if await self.account_manager.email_taken(email=request.email):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already taken")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Email already taken"
+            )
 
         request.password = password_hash.hash(request.password)
 
@@ -47,11 +49,15 @@ class AccountService:
     async def delete_account_by_id(self, account_id: UUID) -> None:
         await self.account_manager.delete_by_id(account_id=account_id)
 
-    async def update_account_by_id(self, account_id: UUID, request: ShortAccountSchema) -> AccountResponse:
+    async def update_account_by_id(
+        self, account_id: UUID, request: ShortAccountSchema
+    ) -> AccountResponse:
 
         await self._get_account_or_404(account_id=account_id)
 
-        account = await self.account_manager.update_by_id(account_id=account_id, request=request)
+        account = await self.account_manager.update_by_id(
+            account_id=account_id, request=request
+        )
         return AccountResponse(**account.__dict__)
 
     async def authenticate(self, request: LoginRequest) -> TokenResponse:
@@ -59,15 +65,12 @@ class AccountService:
 
         if not account:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid password"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
             )
         if not password_hash.verify(request.password, account.password):
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid password"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
             )
 
-        access_token = create_access_token(data={"sub": str(account.id)})
-        token_type = "bearer"
-        return TokenResponse(access_token=access_token, token_type=token_type)
+        access_token = create_access_token(account_id=str(account.id))
+        return TokenResponse(access_token=access_token, token_type="bearer")
