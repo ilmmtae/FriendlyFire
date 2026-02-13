@@ -61,10 +61,3 @@ async def update_account_by_id(
     return await AccountService(db=db).update_account_by_id(
         account_id=account_id, request=request
     )
-
-
-@account_router.post("/login")
-async def login(request: LoginRequest, db: AsyncSession = Depends(RWSessionStub)):
-    return await AccountService(db).authenticate(request)
-
-

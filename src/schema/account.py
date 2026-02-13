@@ -5,11 +5,17 @@ from pydantic import BaseModel, Field, field_validator
 
 from src.db.types.account import AccountType
 
+
 class ShortAccountSchema(BaseModel):
-    first_name: str | None = Field(None, description="The first name of the account holder")
-    last_name: str | None = Field(None, description="The last name of the account holder")
+    first_name: str | None = Field(
+        None, description="The first name of the account holder"
+    )
+    last_name: str | None = Field(
+        None, description="The last name of the account holder"
+    )
     image: str | None = Field(None, description="The image URL of the account holder")
     email: str = Field(..., description="The email of the account holder")
+
 
 class CreateAccountRequest(ShortAccountSchema):
     password: str = Field(..., description="The password of the account holder")
@@ -22,7 +28,7 @@ class CreateAccountRequest(ShortAccountSchema):
         if not any(char.isupper() for char in v):
             raise ValueError("Password must contain at least one uppercase letter")
 
-        special_chars = "@#$%^&+="
+        special_chars = "@#$%^&+=_-"
         if not any(char in special_chars for char in v):
             raise ValueError("Password must contain at least one special character")
         return v
@@ -34,10 +40,11 @@ class CreateAccountRequest(ShortAccountSchema):
                 "last_name": "Doe",
                 "email": "test@gmail.com",
                 "image": "http://example.com/image.jpg",
-                "password": "Pass+word"
+                "password": "Pass+word",
             }
         }
     }
+
 
 class AccountResponse(ShortAccountSchema):
     id: UUID = Field(..., description="The unique identifier of the account")
@@ -65,5 +72,3 @@ class AccountResponse(ShortAccountSchema):
             }
         }
     }
-
-
