@@ -18,6 +18,13 @@ services:
       - data:/var/lib/postgresql/data
     networks:
         - network
+  redis:
+    image: redis:7-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - network
 
 volumes:
   data:

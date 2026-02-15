@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str | None
     POSTGRES_PORT: str | None
     JWT_SECRET: str | None
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
 
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     @classmethod
