@@ -72,3 +72,9 @@ class AccountResponse(ShortAccountSchema):
             }
         }
     }
+
+
+class AccountRegisterResponse(BaseModel):
+    account: AccountResponse
+    access_token: str
+    token_type: str = "bearer"

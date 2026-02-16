@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.limiter import RateLimiter
 from src.dependencies.database import RWSessionStub
 from src.schema.authentication import LoginRequest, TokenResponse
 from src.service.account import AccountService
@@ -13,3 +14,7 @@ async def login(
     request: LoginRequest, db: AsyncSession = Depends(RWSessionStub)
 ) -> TokenResponse:
     return await AccountService(db=db).authenticate(request=request)
+
+@authentication_router.post("/login", dependencies=[Depends(RateLimiter(times=5, seconds=60))])
+async def login(request: LoginRequest, db: AsyncSession = Depends(RWSessionStub)):
+    return await AccountService(db=db).authenticate(request)

@@ -2,7 +2,6 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from src.schema.account import AccountResponse
 
 
 class LoginRequest(BaseModel):

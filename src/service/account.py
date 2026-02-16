@@ -63,13 +63,9 @@ class AccountService:
     async def authenticate(self, request: LoginRequest) -> TokenResponse:
         account = await self.account_manager.get_by_email(email=request.email)
 
-        if not account:
+        if not account or not password_hash.verify(request.password, account.password):
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
-            )
-        if not password_hash.verify(request.password, account.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid login or password"
             )
 
         access_token = create_access_token(account_id=str(account.id))

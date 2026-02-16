@@ -37,6 +37,8 @@ async def get_token(
         account_id = payload.get("sub")
         if account_id is None:
             raise credentials_exception
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Access token expired")
     except jwt.InvalidTokenError:
         raise credentials_exception
     return account_id
