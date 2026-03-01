@@ -11,6 +11,4 @@ def create_temp_token(user_uuid: str) -> str:
 
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
 
-    print(f"DEBUG: Сгенероване посилання: https://t.me/friendlyfireproject_bot?start={token}")
-
     return token
