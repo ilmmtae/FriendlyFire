@@ -56,7 +56,7 @@ async def generate_deeplink(current_user = Depends(get_current_user)):
 
     token = await save_auth_token(str(current_user.id))
 
-    return {"deeplink": f"https://t.me/friendlyfireproject_bot?start={token}"}
+    return {"deeplink": f"https://t.me/{settings.BOT_NAME}?start={token}"}
 
 
 @authentication_router.post("/verify-deeplink")
