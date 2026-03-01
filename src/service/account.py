@@ -1,12 +1,12 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy import select
+
+from src.core.token_utils import create_access_token, create_refresh_token
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from src.core.security import password_hash, create_access_token
+from src.core.security import password_hash
 from src.db.models.account import Account
 from src.db.operations.account import AccountManager
 from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema
@@ -64,9 +64,26 @@ class AccountService:
         account = await self.account_manager.get_by_email(email=request.email)
 
         if not account or not password_hash.verify(request.password, account.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid login or password"
-            )
+            raise HTTPException( status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid login or password")
 
         access_token = create_access_token(account_id=str(account.id))
-        return TokenResponse(access_token=access_token, token_type="bearer")
+        refresh_token = create_refresh_token(account_id=str(account.id))
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer"
+        )
+
+
+    async def verify_phone(self, user_uuid: str, phone: str):
+        account = await self.account_manager.get_by_id(user_uuid)
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+
+        account.phone_number = phone
+        account.is_phone_verified = True
+
+        await self.db.commit()
+        await self.db.refresh(account)
+        return account

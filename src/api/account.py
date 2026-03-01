@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from fastapi import Depends, status, APIRouter, Path
 
 from src.core.limiter import RateLimiter
-from src.core.security import create_access_token
+from src.core.security import get_token
+from src.core.token_utils import create_access_token
 from src.dependencies.database import RWSessionStub
 from src.schema.account import (
     CreateAccountRequest,
@@ -70,4 +71,11 @@ async def update_account_by_id(
     return await AccountService(db=db).update_account_by_id(
         account_id=account_id, request=request
     )
+
+@account_router.get("/link")
+async def get_auth_link(
+        db: AsyncSession = Depends(RWSessionStub),
+        token: str = Depends(get_token),
+):
+    return AccountService(db=db)
 

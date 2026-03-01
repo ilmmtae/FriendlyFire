@@ -17,11 +17,13 @@ class Account(Base):
     last_name = Column(String)
     email = Column(String, unique=True, nullable=False)
     image = Column(String, nullable=True)
-    is_deleted = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False, server_default="false")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
     type = Column(String, default=AccountType.STUDENT)
     password = Column(String, default="")
+    phone_number = Column(String, default=None, nullable=True)
+    is_phone_verified = Column(Boolean, default=False, server_default="false", nullable=False)
 
 
     contact_data = relationship(
