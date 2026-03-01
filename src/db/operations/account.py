@@ -1,6 +1,8 @@
 from typing import Any
 from uuid import UUID
 
+from src.db.base import async_session
+
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql.expression import select, delete, update
 
@@ -53,3 +55,12 @@ class AccountManager:
     async def get_by_email(self, email: str) -> Account | None:
         result = await self.db.execute(select(Account).where(Account.email == email))
         return result.scalars().one_or_none()
+
+    async def update_account_verification(self, account_id: UUID, phone: str) -> None:
+        stmt = (
+            update(Account)
+            .where(Account.id == account_id)
+            .values(phone_number=phone, is_phone_verified=True)
+        )
+        await self.db.execute(stmt)
+        await self.db.commit()

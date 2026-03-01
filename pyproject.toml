@@ -13,5 +13,6 @@ dependencies = [
     "psycopg[binary]>=3.3.2",
     "pwdlib[argon2]>=0.3.0",
     "pyjwt>=2.11.0",
+    "python-jose>=3.5.0",
     "sqlalchemy==2.0.46",
 ]

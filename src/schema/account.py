@@ -56,6 +56,7 @@ class AccountResponse(ShortAccountSchema):
         ..., description="The last update timestamp of the account"
     )
     type: str | None = Field(None, description="Type of the account")
+    phone_number: str | None = None
 
     model_config = {
         "json_schema_extra": {
@@ -78,3 +79,4 @@ class AccountRegisterResponse(BaseModel):
     account: AccountResponse
     access_token: str
     token_type: str = "bearer"
+

@@ -20,7 +20,18 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    refresh_token: str
 
 
 class TokenData(BaseModel):
     account_id: str | UUID = None
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+class DeeplinkResponse(BaseModel):
+    deeplink: str
+
+class VerifyDeeplinkRequest(BaseModel):
+    token: str
+    phone: str
