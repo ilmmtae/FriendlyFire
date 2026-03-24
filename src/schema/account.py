@@ -1,21 +1,18 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from email_validator import validate_email, EmailNotValidError
+from pydantic import BaseModel, Field, field_validator, EmailStr
 
 from src.db.types.account import AccountType
 
+EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
 class ShortAccountSchema(BaseModel):
-    first_name: str | None = Field(
-        None, description="The first name of the account holder"
-    )
-    last_name: str | None = Field(
-        None, description="The last name of the account holder"
-    )
+    first_name: str | None = Field(None, description="The first name of the account holder")
+    last_name: str | None = Field(None, description="The last name of the account holder")
     image: str | None = Field(None, description="The image URL of the account holder")
-    email: str = Field(..., description="The email of the account holder")
-
+    email: str = Field(..., pattern=EMAIL_REGEX, description="User email address")
 
 class CreateAccountRequest(ShortAccountSchema):
     password: str = Field(..., description="The password of the account holder")
@@ -80,3 +77,11 @@ class AccountRegisterResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+class UserInvite(BaseModel):
+    email: EmailStr
+
+class InviteSuccessResponse(BaseModel):
+    status: str = "success"
+    account: AccountResponse
+    invite_code: str
+    dispatch_time: str

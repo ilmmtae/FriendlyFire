@@ -14,11 +14,14 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str | None
     POSTGRES_PORT: str | None
     JWT_SECRET: str | None
-    ALGORITHM: str = "HS256"
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    ALGORITHM: str | None
+    REDIS_HOST: str | None
+    REDIS_PORT: int | None
     BOT_TOKEN: str | None
     BOT_NAME: str | None
+    HOST: str | None
+    BROKER: str | None
+    BACKEND: str | None
 
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     @classmethod
