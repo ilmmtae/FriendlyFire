@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from fastapi import Depends, status, APIRouter, Path
 
 from src.worker.tasks import send_invite_email_task
+from src.config.config import settings
 from src.core.limiter import RateLimiter
 from src.core.security import get_token
 from src.core.token_utils import create_access_token
@@ -16,13 +17,15 @@ from src.dependencies.database import RWSessionStub
 from src.schema.account import (
     CreateAccountRequest,
     AccountResponse,
-    ShortAccountSchema, AccountRegisterResponse, UserInvite,
+    ShortAccountSchema, AccountRegisterResponse, UserInvite, InviteSuccessResponse,
 )
 from src.schema.authentication import LoginRequest
 from src.service.account import AccountService
 
-DJANGO_WEBHOOK_URL = "http://127.0.0.1:8000/webhook/user-sync/"
-DJANGO_INVITE_URL = "http://127.0.0.1:8000/api/internal/invite/"
+DJANGO_WEBHOOK_URL = f"{settings.HOST}/webhook/user-sync/"
+DJANGO_INVITE_URL = f"{settings.HOST}/api/internal/invite/"
+
+logger = logging.getLogger(__name__)
 
 async def sync_to_django(first_name: str, last_name: str, email: str, image: str, password: str = "default_pass"):
     async with httpx.AsyncClient() as client:
@@ -36,9 +39,16 @@ async def sync_to_django(first_name: str, last_name: str, email: str, image: str
                 "image_url": image
             }
             response = await client.post(DJANGO_WEBHOOK_URL, json=payload, timeout=5.0)
-            print(f"Django synchronization status: {response.status_code}")
+            response.raise_for_status()
+
+            logger.info(
+                f"Successfully synced account {email} with Django. "
+                f"Status: {response.status_code}"
+            )
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Django sync failed with status {e.response.status_code}: {e.response.text}")
         except Exception as e:
-            print(f"Django synchronization error: {e}")
+            logger.error(f"Django synchronization unexpected error: {e}", exc_info=True)
 
 account_router = APIRouter(prefix="/account", tags=["account"])
 
@@ -113,25 +123,22 @@ async def get_auth_link(
     return AccountService(db=db)
 
 
-logger = logging.getLogger(__name__)
-
-
-# Удаляешь всё, что было выше, и оставляешь только это:
 
 @account_router.post(
     "/invite-to-social-network",
     status_code=status.HTTP_201_CREATED,
-    summary="Create account and send invite via Celery"
+    response_model=InviteSuccessResponse
 )
 async def invite_to_social_network(
-        request: CreateAccountRequest,
-        db: AsyncSession = Depends(RWSessionStub)
-):
+    request: CreateAccountRequest,
+    db: AsyncSession = Depends(RWSessionStub)
+) -> InviteSuccessResponse:
+    start_time = time.time()
+
     service = AccountService(db=db)
     account = await service.create_account(request)
     invite_code = secrets.token_urlsafe(32)
 
-    start_time = time.perf_counter()
 
     send_invite_email_task.delay(
         email=account.email,
@@ -139,15 +146,13 @@ async def invite_to_social_network(
         first_name=request.first_name or "User",
         last_name=request.last_name or ""
     )
+    duration = time.time() - start_time
 
-    end_time = time.perf_counter()
-    duration = end_time - start_time
+    logger.info(f"Invite task dispatched for {account.email} in {duration:.4f}s")
 
-    print(f"\n!!! TIMER !!! Dispatch to Celery took: {duration:.6f} seconds\n")
-
-    return {
-        "status": "success",
-        "account": account,
-        "invite_code": invite_code,
-        "dispatch_time": f"{duration:.4f}s"
-    }
+    return InviteSuccessResponse(
+        status="success",
+        account=account,
+        invite_code=invite_code,
+        dispatch_time=f"{duration:.4f}s"
+    )

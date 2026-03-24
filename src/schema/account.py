@@ -79,3 +79,9 @@ class AccountRegisterResponse(BaseModel):
 
 class UserInvite(BaseModel):
     email: EmailStr
+
+class InviteSuccessResponse(BaseModel):
+    status: str = "success"
+    account: AccountResponse
+    invite_code: str
+    dispatch_time: str
