@@ -20,4 +20,4 @@ An asynchronous microservice dedicated to user lifecycle management, secure auth
 1. Configure your `.env` file based on `.env.example`.
 2. Run the service:
    ```bash
-   docker-compose up --build fastapi_service
+   docker-compose up --build
