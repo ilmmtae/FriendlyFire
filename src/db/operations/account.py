@@ -1,14 +1,13 @@
 from typing import Any
 from uuid import UUID
 
-from src.db.base import async_session
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql.expression import select, delete, update
 
 from src.db.models.account import Account
 from src.schema.account import CreateAccountRequest, ShortAccountSchema
-from src.schema.authentication import LoginRequest
+
 
 
 class AccountManager:
@@ -63,4 +62,9 @@ class AccountManager:
             .values(phone_number=phone, is_phone_verified=True)
         )
         await self.db.execute(stmt)
+        await self.db.commit()
+
+    async def update_password(self, account_id: UUID, hashed_password: str) -> None:
+        query = update(Account).where(Account.id == account_id).values(password=hashed_password)
+        await self.db.execute(query)
         await self.db.commit()

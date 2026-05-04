@@ -1,25 +1,26 @@
 import logging
 import secrets
 import time
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 import httpx
+from requests import Session
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from fastapi import Depends, status, APIRouter, Path
+from fastapi import Depends, status, APIRouter, Path, Query
 
+from src.db import models
 from src.worker.tasks import send_invite_email_task
 from src.config.config import settings
 from src.core.limiter import RateLimiter
 from src.core.security import get_token
 from src.core.token_utils import create_access_token
-from src.dependencies.database import RWSessionStub
+from src.dependencies.database import RWSessionStub, get_db
 from src.schema.account import (
     CreateAccountRequest,
     AccountResponse,
-    ShortAccountSchema, AccountRegisterResponse, UserInvite, InviteSuccessResponse,
+    ShortAccountSchema, AccountRegisterResponse, UserInvite, InviteSuccessResponse, AccountPaginationResponse,
 )
-from src.schema.authentication import LoginRequest
 from src.service.account import AccountService
 
 DJANGO_WEBHOOK_URL = f"{settings.HOST}/webhook/user-sync/"
@@ -156,3 +157,42 @@ async def invite_to_social_network(
         invite_code=invite_code,
         dispatch_time=f"{duration:.4f}s"
     )
+
+
+@account_router.get("/accounts", response_model=AccountPaginationResponse)
+def get_accounts(
+    db: Session = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None
+):
+    query = db.query(models.Account)
+
+    if search:
+        query = query.filter(models.Account.email.contains(search))
+
+    total_count = query.count()
+
+    accounts = query.offset(skip).limit(limit).all()
+
+    return {
+        "total": total_count,
+        "limit": limit,
+        "skip": skip,
+        "items": accounts
+    }
+
+@account_router.get("/accounts", response_model=AccountPaginationResponse)
+def list_accounts(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    total, items = AccountService.get_paginated_accounts(db, skip, limit, search)
+    return {
+        "total": total,
+        "limit": limit,
+        "skip": skip,
+        "items": items
+    }

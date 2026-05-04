@@ -1,12 +1,16 @@
+from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from requests import Session
+from sqlalchemy import update
 
 from src.core.token_utils import create_access_token, create_refresh_token
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.core.security import password_hash
+from src.db import models
 from src.db.models.account import Account
 from src.db.operations.account import AccountManager
 from src.schema.account import CreateAccountRequest, AccountResponse, ShortAccountSchema
@@ -87,3 +91,58 @@ class AccountService:
         await self.db.commit()
         await self.db.refresh(account)
         return account
+
+    async def authenticate_oauth_user(self, user_info: dict) -> TokenResponse:
+        email = user_info.get("email")
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email not provided by OAuth provider"
+            )
+
+        account = await self.account_manager.get_by_email(email=email)
+
+        if not account:
+            new_account_data = CreateAccountRequest(
+                email=email,
+                password=None
+            )
+            account = await self.account_manager.create_account(request=new_account_data)
+
+        access_token = create_access_token(account_id=str(account.id))
+        refresh_token = create_refresh_token(account_id=str(account.id))
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer"
+        )
+
+    async def set_initial_password(self, account_id: UUID, new_password: str):
+        account = await self._get_account_or_404(account_id)
+
+        if account.password is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password is already set for this account"
+            )
+
+        hashed_password = password_hash.hash(new_password)
+        await self.account_manager.update_password(account_id, hashed_password)
+
+        return {"status": "password set successfully"}
+
+    @staticmethod
+    async def get_paginated_accounts(db: Session, skip: int, limit: int, search: Optional[str] = None):
+        query = db.query(models.Account)
+
+        if search:
+            query = query.filter(models.Account.email.contains(search))
+
+        total = query.count()
+
+        items = query.offset(skip).limit(limit).all()
+
+        return total, items
+
+
