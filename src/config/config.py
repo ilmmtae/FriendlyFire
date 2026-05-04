@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     HOST: str | None
     BROKER: str | None
     BACKEND: str | None
+    GOOGLE_CLIENT_ID: str | None
+    GOOGLE_CLIENT_SECRET: str | None
+    GITHUB_CLIENT_ID: str
+    GITHUB_CLIENT_SECRET: str
 
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     @classmethod

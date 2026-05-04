@@ -1,5 +1,7 @@
 from typing import List
 
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models.courses import Course
@@ -26,3 +28,7 @@ class CourseService:
 
     async def update_course_by_id(self, request: ShortCourseSchema) -> Course:
         return await self.manager.update_course_by_id(request)
+
+    async def list_courses(self):
+        query = select(Course)
+        return await paginate(self.db, query)

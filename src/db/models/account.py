@@ -21,7 +21,7 @@ class Account(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
     type = Column(String, default=AccountType.STUDENT)
-    password = Column(String, default="")
+    password = Column(String, default=None, nullable=True)
     phone_number = Column(String, default=None, nullable=True)
     is_phone_verified = Column(Boolean, default=False, server_default="false", nullable=False)
 

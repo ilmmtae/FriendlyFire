@@ -3,7 +3,7 @@ from typing import Annotated
 import jwt
 from fastapi import Depends, HTTPException, status
 from pwdlib import PasswordHash
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.config import settings
@@ -17,6 +17,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 password_hash = PasswordHash.recommended()
 security_scheme = HTTPBearer()
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="authentication/login")
 
 async def get_token(
     auth: Annotated[HTTPAuthorizationCredentials, Depends(security_scheme)],

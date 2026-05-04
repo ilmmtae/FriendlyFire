@@ -3,6 +3,7 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status, HTTPException, Path
+from fastapi_pagination import Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.operations.courses import CourseManager
@@ -28,12 +29,12 @@ async def create_course(
 @course_router.get(
     "",
     summary="List all courses",
-    response_model=List[CourseResponse],
+    response_model=Page[CourseResponse],
 )
 async def list_courses(
     db: AsyncSession = Depends(RWSessionStub),
-) -> List[CourseResponse]:
-    return await CourseManager(db=db).list_courses()
+):
+    return await CourseService(db=db).list_courses()
 
 @course_router.get(
     "/{course_id}",

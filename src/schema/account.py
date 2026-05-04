@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from uuid import UUID
 
 from email_validator import validate_email, EmailNotValidError
@@ -15,20 +16,22 @@ class ShortAccountSchema(BaseModel):
     email: str = Field(..., pattern=EMAIL_REGEX, description="User email address")
 
 class CreateAccountRequest(ShortAccountSchema):
-    password: str = Field(..., description="The password of the account holder")
+    password: str | None = Field(None, description="The password of the account holder")
 
     @field_validator("password")
     @classmethod
-    def validate_password(cls, v: str):
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        if not any(char.isupper() for char in v):
-            raise ValueError("Password must contain at least one uppercase letter")
+    def validate_password(cls, v: str | None=None):
+        if v:
+            if len(v) < 8:
+                raise ValueError("Password must be at least 8 characters long")
+            if not any(char.isupper() for char in v):
+                raise ValueError("Password must contain at least one uppercase letter")
 
-        special_chars = "@#$%^&+=_-"
-        if not any(char in special_chars for char in v):
-            raise ValueError("Password must contain at least one special character")
-        return v
+            special_chars = "@#$%^&+=_-"
+            if not any(char in special_chars for char in v):
+                raise ValueError("Password must contain at least one special character")
+            return v
+        return None
 
     model_config = {
         "json_schema_extra": {
@@ -85,3 +88,10 @@ class InviteSuccessResponse(BaseModel):
     account: AccountResponse
     invite_code: str
     dispatch_time: str
+
+class AccountPaginationResponse(BaseModel):
+    total: int
+    limit: int
+    skip: int
+    items: List[ShortAccountSchema]
+

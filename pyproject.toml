@@ -1,18 +1,24 @@
 [project]
-name = "friendlyfire"
+name = "eduplatform"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.18.1",
     "asyncpg>=0.31.0",
+    "authlib>=1.7.0",
     "black>=26.1.0",
+    "celery>=5.6.3",
+    "fastapi-pagination>=0.15.12",
     "fastapi[standard]>=0.128.0",
     "greenlet>=3.3.0",
     "httpx>=0.28.1",
+    "itsdangerous>=2.2.0",
     "psycopg[binary]>=3.3.2",
     "pwdlib[argon2]>=0.3.0",
     "pyjwt>=2.11.0",
     "python-jose>=3.5.0",
+    "redis>=7.4.0",
+    "requests>=2.33.1",
     "sqlalchemy==2.0.46",
 ]

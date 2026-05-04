@@ -1,9 +1,12 @@
 from fastapi import FastAPI
+from fastapi_pagination import add_pagination
+from starlette.middleware.sessions import SessionMiddleware
 
 from src.api.authentication import authentication_router
 from src.api.course import course_router
 from src.api.me import me_router
 from src.api.task import task_router
+from src.config.config import settings
 from src.config.db import setup_database
 from src.api.account import account_router
 from src.api.docs import docs_router
@@ -17,3 +20,5 @@ app.include_router(course_router)
 app.include_router(docs_router, include_in_schema=False)
 app.include_router(me_router)
 app.include_router(authentication_router)
+add_pagination(app)
+app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET)
